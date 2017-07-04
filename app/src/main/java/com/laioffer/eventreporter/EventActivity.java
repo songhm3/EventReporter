@@ -9,9 +9,10 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 public class EventActivity extends AppCompatActivity{
-    ReportEventFragment reportFragment;
-    String username;
-    TextView usernameTextView;
+    private ReportEventFragment reportFragment;
+    private ShowEventFragment showEventsFragment;
+    private String username;
+    private TextView usernameTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +27,10 @@ public class EventActivity extends AppCompatActivity{
         // Create ReportEventFragment
         if (reportFragment == null) {
             reportFragment = new ReportEventFragment();
+        }
+
+        if (showEventsFragment == null) {
+            showEventsFragment = new ShowEventFragment();
         }
 
         // Add Fragment to the fragment
@@ -45,7 +50,9 @@ public class EventActivity extends AppCompatActivity{
                                         .replace(R.id.fragment_container, reportFragment).commit();
                                 break;
                             case R.id.action_events:
-
+                                getSupportFragmentManager().beginTransaction()
+                                        .replace(R.id.fragment_container, showEventsFragment).commit();
+                                break;
                         }
                         return false;
                     }

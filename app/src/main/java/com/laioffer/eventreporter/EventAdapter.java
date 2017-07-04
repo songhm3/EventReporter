@@ -53,8 +53,8 @@ public class EventAdapter extends BaseAdapter {
 
             ImageView eventImage = (ImageView) convertView.findViewById(R.id.event_thumbnail);
             Event r = eventData.get(position);
-            eventTitle.setText(r.getTitle());
-            eventAddress.setText(r.getAddress());
+//            eventTitle.setText(r.getTitle());
+//            eventAddress.setText(r.getAddress());
             eventDescription.setText(r.getDescription());
 
             if(position < 2) {

@@ -1,17 +1,28 @@
 package com.laioffer.eventreporter;
 
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -19,17 +30,32 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.io.File;
+
+import static android.app.Activity.RESULT_OK;
 
 public class ReportEventFragment extends Fragment {
     private final static String TAG = ReportEventFragment.class.getSimpleName();
     private EditText mTextViewLocation;
     private EditText getmTextViewDest;
+    private EditText mTextViewTitle;
     private Button mReportButton;
     private DatabaseReference database;
     private String username;
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+
+    private FirebaseStorage storage;
+    private StorageReference storageRef;
+    private static int RESULT_LOAD_IMAGE = 1;
+    private Button mSelectButton;
+    private ImageView mImageView;
+    private String mPicturePath = "";
 
     public ReportEventFragment() {
         // Required empty public constructor
@@ -41,6 +67,13 @@ public class ReportEventFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_report_event, container, false);
         mTextViewLocation = (EditText) view.findViewById(R.id.text_event_location);
+
+        checkPermission();
+        mImageView = (ImageView) view.findViewById(R.id.img_event_pic);
+        mSelectButton = (Button) view.findViewById(R.id.button_select);
+        mTextViewTitle = (EditText) view.findViewById(R.id.text_event_title);
+        storage = FirebaseStorage.getInstance();
+        storageRef = storage.getReference();
 
 
         getmTextViewDest = (EditText) view.findViewById(R.id.text_event_description);
@@ -54,6 +87,11 @@ public class ReportEventFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String key = uploadEvent();
+                if (!mPicturePath.equals("")) {
+                    Log.i(TAG, "key" + key);
+                    uploadImage(mPicturePath, key);
+                    mPicturePath = "";
+                }
             }
         });
 
@@ -82,9 +120,52 @@ public class ReportEventFragment extends Fragment {
         });
 
 
+        mSelectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(
+                        Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(intent, RESULT_LOAD_IMAGE);
+            }
+        });
+
 
         return view;
     }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+            Cursor cursor = getContext().getContentResolver().query(selectedImage,
+                    filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+            Log.e(TAG, picturePath);
+            mPicturePath = picturePath;
+            mImageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+            mImageView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void checkPermission() {
+        if (ContextCompat.checkSelfPermission(getActivity(),
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(getActivity(),
+                android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {//Can add more as per requirement
+            ActivityCompat.requestPermissions(getActivity(),
+                    new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE},
+                    123);
+        }
+    }
+
 
     /**
      * upload data and set path
@@ -92,6 +173,7 @@ public class ReportEventFragment extends Fragment {
     private String uploadEvent() {
         String location = mTextViewLocation.getText().toString();
         String description = getmTextViewDest.getText().toString();
+        String title = mTextViewTitle.getText().toString();
         if (location.equals("") || description.equals("")) {
             return "";
         }
@@ -101,6 +183,7 @@ public class ReportEventFragment extends Fragment {
         event.setDescription(description);
         event.setTime(System.currentTimeMillis());
         event.setUser(username);
+        event.setTitle(title);
         String key = database.child("events").push().getKey();
         event.setId(key);
         database.child("events").child(key).setValue(event, new DatabaseReference.CompletionListener() {
@@ -119,6 +202,33 @@ public class ReportEventFragment extends Fragment {
         });
         return key;
     }
+
+    /**
+     * Upload image and get file path
+     */
+    private void uploadImage(final String imgPath, final String eventId) {
+        Uri file = Uri.fromFile(new File(imgPath));
+        StorageReference imgRef = storageRef.child("images/" + file.getLastPathSegment());
+
+        UploadTask uploadTask = imgRef.putFile(file);
+
+        // Register observers to listen for when the download is done or if it fails
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle unsuccessful uploads
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+                Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                Log.i(TAG, "upload successfully");
+                database.child("events").child(eventId).child("imgUri").setValue(downloadUrl.toString());
+            }
+        });
+    }
+
 
     @Override
     public void onStart() {

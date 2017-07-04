@@ -11,6 +11,20 @@ public class Event {
     private String description;
 
 
+
+    private String repost;
+    private String imgUrl;
+    private String title;
+
+    //Constructor
+
+    public Event(String title, String location, String description){
+        this.title = title;
+        this.location = location;
+        this.description = description;
+    }
+
+
     public String getId() {
         return id;
     }
@@ -75,5 +89,27 @@ public class Event {
         this.commentNumber = commentNumber;
     }
 
+    public String getTitle() {
+        return title;
+    }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getRepost() {
+        return repost;
+    }
+
+    public void setRepost(String repost) {
+        this.repost = repost;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
+    }
 }

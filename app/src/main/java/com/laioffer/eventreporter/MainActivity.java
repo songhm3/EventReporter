@@ -1,19 +1,15 @@
 package com.laioffer.eventreporter;
 
 import android.content.Intent;
-import android.support.v4.app.Fragment;
-import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Toast;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,21 +30,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        // Get ListView object from xml.
-//        ListView eventListView = (ListView) findViewById(R.id.event_list);
-//
-//        // Initialize an adapter.
-//        EventAdapter adapter = new EventAdapter(this);
-//
-//        // Assign adapter to ListView.
-//        eventListView.setAdapter(adapter);
-
-        // Show different fragments based on screen size.
-//        if (findViewById(R.id.fragment_container) != null) {
-//            Fragment fragment = isTablet() ? new  CommentFragment() : new EventFragment();
-//            getSupportFragmentManager().beginTransaction().add(R.id.fragment_container, fragment).commit();
-//        }
-
 //        //Write a message to the database
 //        FirebaseDatabase database = FirebaseDatabase.getInstance();
 //        DatabaseReference myRef = database.getReference("message");
@@ -116,43 +97,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-    }
-
-    private boolean isTablet() {
-        return (getApplicationContext().getResources().getConfiguration().screenLayout &
-                Configuration.SCREENLAYOUT_SIZE_MASK) >=
-                Configuration.SCREENLAYOUT_SIZE_LARGE;
-    }
-
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.e("Life cycle test", "We are at onStart()");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.e("Life cycle test", "We are at onResume()");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.e("Life cycle test", "We are at onPause()");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.e("Life cycle test", "We are at onStop()");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.e("Life cycle test", "We are at onDestroy()");
     }
 
 }
