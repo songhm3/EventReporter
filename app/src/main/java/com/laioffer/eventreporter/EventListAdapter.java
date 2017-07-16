@@ -1,6 +1,7 @@
 package com.laioffer.eventreporter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.view.LayoutInflater;
@@ -47,6 +48,12 @@ public class EventListAdapter extends BaseAdapter {
     private static final int TYPE_MAX_COUNT = TYPE_ADS + 1;
     private AdLoader.Builder builder;
     private TreeSet mSeparatorsSet = new TreeSet();
+
+    private String username;
+
+    public void setUserName(String username) {
+        this.username = username;
+    }
 
 
     public EventListAdapter(Context context) {
@@ -234,6 +241,19 @@ public class EventListAdapter extends BaseAdapter {
                     });
                 }
             });
+
+            rowView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, CommentActivity.class);
+
+                    String eventId = event.getId();
+                    intent.putExtra("EventID", eventId);
+                    intent.putExtra("Commenter", username);
+                    context.startActivity(intent);
+                }
+            });
+
 
         }
         return rowView;

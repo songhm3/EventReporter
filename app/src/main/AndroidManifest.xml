@@ -20,6 +20,14 @@
 
         <activity android:name=".EventActivity">
         </activity>
+
+        <activity android:name=".CommentActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateVisible|adjustPan">
+
+        </activity>
+
+
     </application>
 
 </manifest>
